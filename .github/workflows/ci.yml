@@ -1,0 +1,33 @@
+name: CI for booking app using Github actions
+
+# on events
+on:
+    push:
+        branches:
+            - master
+    pull_request:
+        branches:
+            - master
+
+# jobs to run
+jobs:
+    test:
+        name: test
+        runs-on: ubuntu-latest
+        steps:
+            # step 1 setup python
+            - name: Setup python
+              uses: actions/setup-python@v5
+
+            # Step 2 Install all the dependencies
+            - name: Install the dependencies
+              run: pip install -r requirements.txt
+            
+            # Run test
+            - name: Run test  
+              env:
+                SECRET_KEY: ${{ secrets.SECRET_KEY }}
+              
+              run: |
+                cd housing
+                python manage.py test
