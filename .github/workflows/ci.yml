@@ -32,5 +32,4 @@ jobs:
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
       
       run: |
-        cd housing
         python manage.py test
