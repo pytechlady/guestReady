@@ -16,8 +16,8 @@ class BookingSerializer(serializers.ModelSerializer):
         check_in = attrs.get('checkin')
         check_out = attrs.get('checkout')
     
-        check_booking = Booking.objects.filter(flat__name=flat_name)
-        if check_booking.filter(Q(checkin=check_in) & Q(checkout=check_out)):
+        existing_bookings = Booking.objects.filter(flat__name=flat_name).filter(Q(checkin__lt=check_out) & Q(checkout__gt=check_in))
+        if existing_bookings.exists():
             raise serializers.ValidationError({"flat":
                 "Flat not available for these dates"})
         
@@ -33,14 +33,23 @@ class BookingSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         try:
             flat_obj, created = Flat.objects.get_or_create(name=validated_data.get('flat_name'))
-            if Booking.objects.exists():
-                booking_id = Booking.objects.last().id
-            if Booking.objects.filter(flat__name=validated_data.get('flat_name')).exists():
-                previous_booking_id = booking_id
+
+            last_booking = Booking.objects.filter(flat__name=flat_obj.name).last()
+
+            # Determine the previous booking ID or set to '-'
+            if last_booking:
+                previous_booking_id = last_booking.id
             else:
                 previous_booking_id = '-'
-            new_booking = Booking.objects.create(flat=flat_obj, checkin=validated_data.get('checkin'), checkout=validated_data.get('checkout'), previous_booking_id = previous_booking_id)
-            
+
+            # Create the new booking
+            new_booking = Booking.objects.create(
+                flat=flat_obj,
+                checkin=validated_data.get('checkin'),
+                checkout=validated_data.get('checkout'),
+                previous_booking_id=previous_booking_id
+            )
+                
             return new_booking
         except Exception as e:
             print(f"Create error, {e}")

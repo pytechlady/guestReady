@@ -40,7 +40,7 @@ class BookingView(generics.GenericAPIView):
             bookings_data = self.serializer_class(bookings, many=True)
             return Response(
                 convert_to_success_message_with_data(
-                    "Booking fetched created", bookings_data.data
+                    "Booking fetched successfully", bookings_data.data
                 ), status=status.HTTP_200_OK
             )
         except Exception as e:
